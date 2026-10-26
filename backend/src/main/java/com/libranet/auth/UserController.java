@@ -65,7 +65,11 @@ public class UserController {
 
         if (updates.containsKey("currentPassword") && updates.containsKey("newPassword")) {
             if (!passwordEncoder.matches(updates.get("currentPassword"), existingUser.getPassword())) {
-                return ResponseEntity.status(400).build(); // Generic mismatch error
+                throw new IllegalArgumentException("Current password is incorrect");
+            }
+            String newPassword = updates.get("newPassword");
+            if (newPassword == null || newPassword.length() < 8 || newPassword.length() > 72) {
+                throw new IllegalArgumentException("New password must be 8-72 characters");
             }
             existingUser.setPassword(passwordEncoder.encode(updates.get("newPassword")));
         }

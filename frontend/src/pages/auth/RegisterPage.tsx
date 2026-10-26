@@ -24,19 +24,17 @@ export default function RegisterPage() {
 
     try {
       const res = await api.post("/auth/register", { name, email, password });
-      // Usually register might auto-login or ask to login
-      // We will mock auto login if token is returned, else redirect to login
-      if (res.data.token) {
-        login(res.data.token, res.data.user);
-        navigate("/");
-      } else {
-        navigate("/login");
-      }
-    } catch (err: any) {
-      setError(err.response?.data?.message || err.message || "Failed to register.");
-      // Mock flow if backend is offline
-      login("mock-jwt-token", { id: 2, name, email, role: "ROLE_USER" });
+      // The API returns { token, type, id, name, email, role } — same shape as login.
+      const { token, type, ...userData } = res.data;
+      login(token, userData);
       navigate("/");
+    } catch (err: any) {
+      const fieldErrors = err.response?.data?.errors;
+      setError(
+        (fieldErrors && Object.values(fieldErrors).join(" ")) ||
+          err.response?.data?.message ||
+          "Failed to register."
+      );
     } finally {
       setLoading(false);
     }
@@ -91,6 +89,9 @@ export default function RegisterPage() {
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 required
+                minLength={8}
+                maxLength={72}
+                placeholder="At least 8 characters"
                 className="bg-black/50 border-white/10 text-white focus-visible:ring-fuchsia-500 focus-visible:border-fuchsia-500/50 h-11"
               />
             </div>

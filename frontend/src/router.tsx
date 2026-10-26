@@ -4,7 +4,6 @@ import { ProtectedRoute } from '@/components/ProtectedRoute';
 // Auth Pages
 import LoginPage from '@/pages/auth/LoginPage';
 import RegisterPage from '@/pages/auth/RegisterPage';
-import ResetPasswordPage from '@/pages/auth/ResetPasswordPage';
 
 // User Pages
 import HomePage from '@/pages/user/HomePage';
@@ -22,7 +21,6 @@ export const router = createBrowserRouter([
   // ── Public ─────────────────────────────────────────
   { path: '/login',          element: <LoginPage /> },
   { path: '/register',       element: <RegisterPage /> },
-  { path: '/reset-password', element: <ResetPasswordPage /> },
 
   // ── User (any authenticated) ────────────────────────
   {

@@ -6,7 +6,9 @@ import com.libranet.auth.UserRepository;
 import com.libranet.auth.UserActivity;
 import com.libranet.auth.UserActivityRepository;
 import com.libranet.resource.*;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.CommandLineRunner;
+import org.springframework.context.annotation.Profile;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Component;
 
@@ -14,13 +16,22 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
 import java.util.Set;
+import java.util.UUID;
 import java.time.LocalDateTime;
 
 import com.libranet.auth.BookmarkRepository;
 import com.libranet.resource.ReviewRepository;
 
+/**
+ * Wipes and reseeds demo data on startup. Runs ONLY with the "dev" profile:
+ * without this guard every production restart deleted all users and resources.
+ */
 @Component
+@Profile("dev")
 public class DataSeeder implements CommandLineRunner {
+
+    @Value("${app.seed.admin-password:}")
+    private String adminPassword;
 
     private final UserRepository userRepository;
     private final CategoryRepository categoryRepository;
@@ -67,12 +78,16 @@ public class DataSeeder implements CommandLineRunner {
 
         // 1. Users (20+ users for realistic stats)
         List<User> users = new ArrayList<>();
-        users.add(new User("Admin", "admin@libranet.com", passwordEncoder.encode("admin123"), Role.ROLE_ADMIN));
-        users.add(new User("Adithya", "aditya@libranet.com", passwordEncoder.encode("adithya@02"), Role.ROLE_USER));
+        String seededAdminPassword = adminPassword;
+        if (seededAdminPassword == null || seededAdminPassword.isBlank()) {
+            seededAdminPassword = UUID.randomUUID().toString();
+            System.out.println("APP_SEED_ADMIN_PASSWORD not set: admin@libranet.com gets a random password (admin login disabled).");
+        }
+        users.add(new User("Admin", "admin@libranet.com", passwordEncoder.encode(seededAdminPassword), Role.ROLE_ADMIN));
         
         String[] names = {"Jane Doe", "John Smith", "Alice Johnson", "Bob Brown", "Charlie Davis", "Eva Wilson", "Frank Moore", "Grace Taylor", "Henry Anderson", "Ivy Thomas", "Jack Jackson", "Kelly White", "Liam Harris", "Mia Martin", "Noah Thompson", "Olivia Garcia", "Peter Martinez", "Quinn Robinson", "Rose Clark", "Sam Rodriguez"};
         for (String name : names) {
-            User u = new User(name, name.toLowerCase().replace(" ", ".") + "@university.edu", passwordEncoder.encode("password123"), Role.ROLE_USER);
+            User u = new User(name, name.toLowerCase().replace(" ", ".") + "@university.edu", passwordEncoder.encode(UUID.randomUUID().toString()), Role.ROLE_USER);
             users.add(u);
         }
         userRepository.saveAll(users);

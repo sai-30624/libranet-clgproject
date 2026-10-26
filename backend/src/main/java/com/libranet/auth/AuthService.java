@@ -33,10 +33,9 @@ public class AuthService {
             throw new IllegalStateException("Email already registered");
         }
 
+        // Public sign-up always creates a regular user. Admins are created by the
+        // dev seeder or promoted by an existing admin, never by the client.
         Role role = Role.ROLE_USER;
-        if ("ROLE_ADMIN".equals(request.getRole())) {
-            role = Role.ROLE_ADMIN;
-        }
 
         User user = new User(request.getName(), request.getEmail(), passwordEncoder.encode(request.getPassword()), role);
         User saved = userRepository.save(user);
@@ -70,14 +69,6 @@ public class AuthService {
         response.setEmail(user.getEmail());
         response.setRole(user.getRole().name());
         return response;
-    }
-
-    @Transactional
-    public void resetPassword(String email, String newPassword) {
-        User user = userRepository.findByEmail(email)
-                .orElseThrow(() -> new ResourceNotFoundException("User not found"));
-        user.setPassword(passwordEncoder.encode(newPassword));
-        userRepository.save(user);
     }
 
     public User getCurrentUser(String email) {
